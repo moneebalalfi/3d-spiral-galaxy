@@ -11,7 +11,7 @@ document.querySelector("#app").innerHTML = `
  * Base
  */
 // Debug
-const gui = new dat.GUI();
+const gui = new dat.GUI({ width: 500 });
 
 // Canvas
 const canvas = document.querySelector("#webgl");
@@ -21,16 +21,27 @@ const scene = new THREE.Scene();
 
 // Galaxy
 const params = {
-  count: 1000,
-  size: 0.02,
+  count: 10000,
+  size: 0.01,
 };
+
+let geometry = null;
+let material = null;
+let point = null;
 
 function generateGalaxy() {
   const { count, size } = params;
 
-  const geometry = new THREE.BufferGeometry();
-  const material = new THREE.PointsMaterial({
-    color: 0xff0000,
+  // Destroy old galaxy
+  if (point !== null) {
+    geometry.dispose();
+    material.dispose();
+    scene.remove(point);
+  }
+
+  geometry = new THREE.BufferGeometry();
+  material = new THREE.PointsMaterial({
+    color: 0xff8800,
     size,
     sizeAttenuation: true,
     depthWrite: false,
@@ -49,11 +60,27 @@ function generateGalaxy() {
 
   geometry.setAttribute("position", new THREE.BufferAttribute(positions, 3));
 
-  const point = new THREE.Points(geometry, material);
+  point = new THREE.Points(geometry, material);
   scene.add(point);
 }
 
 generateGalaxy();
+
+gui
+  .add(params, "count")
+  .min(100)
+  .max(100000)
+  .step(100)
+  .name("Number of points")
+  .onFinishChange(generateGalaxy);
+
+gui
+  .add(params, "size")
+  .min(0.001)
+  .max(0.1)
+  .step(0.001)
+  .name("Size of point")
+  .onFinishChange(generateGalaxy);
 
 /**
  * Sizes

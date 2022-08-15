@@ -21,8 +21,13 @@ const scene = new THREE.Scene();
 
 // Galaxy
 const params = {
-  count: 10000,
+  count: 100000,
   size: 0.01,
+  radius: 5,
+  branches: 3,
+  spin: 1,
+  randomness: 0.6,
+  randomnessPower: 3,
 };
 
 let geometry = null;
@@ -30,7 +35,8 @@ let material = null;
 let point = null;
 
 function generateGalaxy() {
-  const { count, size } = params;
+  const { count, size, radius, branches, spin, randomness, randomnessPower } =
+    params;
 
   // Destroy old galaxy
   if (point !== null) {
@@ -41,7 +47,7 @@ function generateGalaxy() {
 
   geometry = new THREE.BufferGeometry();
   material = new THREE.PointsMaterial({
-    color: 0xff8800,
+    color: 0xffffff,
     size,
     sizeAttenuation: true,
     depthWrite: false,
@@ -52,10 +58,26 @@ function generateGalaxy() {
 
   for (let i = 0; i < count; i++) {
     const i3 = i * 3;
+    const r = Math.random() * radius;
+    const spinAngle = spin * r;
+    const branchesAngle = ((i % branches) / branches) * 2 * Math.PI;
 
-    positions[i3 + 0] = Math.random(); // x
-    positions[i3 + 1] = Math.random(); // y
-    positions[i3 + 2] = Math.random(); // z
+    const randomX =
+      Math.pow(Math.random(), randomnessPower) *
+      (Math.random() < 0.5 ? 1 : -1) *
+      randomness;
+    const randomY =
+      Math.pow(Math.random(), randomnessPower) *
+      (Math.random() < 0.5 ? 1 : -1) *
+      randomness;
+    const randomZ =
+      Math.pow(Math.random(), randomnessPower) *
+      (Math.random() < 0.5 ? 1 : -1) *
+      randomness;
+
+    positions[i3 + 0] = Math.cos(branchesAngle + spinAngle) * r + randomX; // x
+    positions[i3 + 1] = randomY; // y
+    positions[i3 + 2] = Math.sin(branchesAngle + spinAngle) * r + randomZ; // z
   }
 
   geometry.setAttribute("position", new THREE.BufferAttribute(positions, 3));
@@ -80,6 +102,46 @@ gui
   .max(0.1)
   .step(0.001)
   .name("Size of point")
+  .onFinishChange(generateGalaxy);
+
+gui
+  .add(params, "radius")
+  .min(0.01)
+  .max(20)
+  .step(0.01)
+  .name("Size of galaxy")
+  .onFinishChange(generateGalaxy);
+
+gui
+  .add(params, "branches")
+  .min(2)
+  .max(20)
+  .step(1)
+  .name("Branches Number")
+  .onFinishChange(generateGalaxy);
+
+gui
+  .add(params, "spin")
+  .min(-5)
+  .max(5)
+  .step(0.001)
+  .name("Spin Branches")
+  .onFinishChange(generateGalaxy);
+
+gui
+  .add(params, "randomness")
+  .min(0)
+  .max(2)
+  .step(0.001)
+  .name("Randomness")
+  .onFinishChange(generateGalaxy);
+
+gui
+  .add(params, "randomnessPower")
+  .min(1)
+  .max(10)
+  .step(0.001)
+  .name("Randomness Power")
   .onFinishChange(generateGalaxy);
 
 /**
